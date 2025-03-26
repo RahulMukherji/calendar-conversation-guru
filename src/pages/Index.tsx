@@ -1,16 +1,25 @@
 
 import React, { useState, useEffect } from 'react';
 import ChatContainer from '@/components/ChatContainer';
+import CalendarWidget from '@/components/CalendarWidget';
 import { useAuth } from '@/hooks/useAuth';
 import { ChatMessageProps } from '@/components/ChatMessage';
 import { CalendarEvent } from '@/types/calendar';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  ResizablePanel, 
+  ResizablePanelGroup, 
+  ResizableHandle 
+} from '@/components/ui/resizable';
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 
 const Index = () => {
   const { isAuthenticated, loading, login, logout } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessageProps[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCalendarCollapsed, setIsCalendarCollapsed] = useState(false);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   // Initialize with welcome message when authentication state changes
   useEffect(() => {
@@ -26,6 +35,47 @@ const Index = () => {
       ]);
     }
   }, [isAuthenticated, loading]);
+
+  // Initialize with mock events data
+  useEffect(() => {
+    if (isAuthenticated) {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const nextWeek = new Date(today);
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      
+      // Sample events
+      const mockEvents: CalendarEvent[] = [
+        {
+          title: 'Team Standup',
+          date: today.toISOString().split('T')[0],
+          startTime: '10:00',
+          endTime: '10:30',
+          location: 'Google Meet',
+          attendees: ['john@example.com', 'sarah@example.com'],
+        },
+        {
+          title: 'Product Review',
+          date: tomorrow.toISOString().split('T')[0],
+          startTime: '14:00',
+          endTime: '15:00',
+          location: 'Conference Room A',
+          attendees: ['product@example.com', 'design@example.com'],
+        },
+        {
+          title: 'Quarterly Planning',
+          date: nextWeek.toISOString().split('T')[0],
+          startTime: '09:00',
+          endTime: '12:00',
+          location: 'Main Office',
+          attendees: ['team@example.com'],
+        }
+      ];
+      
+      setEvents(mockEvents);
+    }
+  }, [isAuthenticated]);
 
   const handleSendMessage = async (message: string) => {
     // Add user message to chat
@@ -45,14 +95,16 @@ const Index = () => {
       
       // Mock response based on message content
       let response: ChatMessageProps;
-      let mockEvents: CalendarEvent[] = [];
+      let responseEvents: CalendarEvent[] = [];
       
       // Simple logic to demonstrate event cards
       if (message.toLowerCase().includes('schedule') || message.toLowerCase().includes('meeting')) {
-        mockEvents = [
+        const today = new Date();
+        
+        responseEvents = [
           {
             title: 'Team Standup',
-            date: new Date().toISOString().split('T')[0],
+            date: today.toISOString().split('T')[0],
             startTime: '10:00',
             endTime: '10:30',
             location: 'Google Meet',
@@ -64,13 +116,16 @@ const Index = () => {
           content: "I've scheduled a 'Team Standup' for today at 10:00 AM. Here are the details:",
           type: 'agent',
           timestamp: new Date(),
-          events: mockEvents,
+          events: responseEvents,
         };
+        
+        // Add the event to our events list
+        setEvents(prev => [...prev, ...responseEvents]);
       } else if (message.toLowerCase().includes('tomorrow')) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         
-        mockEvents = [
+        responseEvents = [
           {
             title: 'Product Review',
             date: tomorrow.toISOString().split('T')[0],
@@ -85,8 +140,11 @@ const Index = () => {
           content: "Here's your meeting for tomorrow:",
           type: 'agent',
           timestamp: new Date(),
-          events: mockEvents,
+          events: responseEvents,
         };
+        
+        // Add the event to our events list
+        setEvents(prev => [...prev, ...responseEvents]);
       } else {
         response = {
           content: "I can help you manage your calendar. You can ask me to schedule meetings, check your availability, or manage existing events. What would you like to do?",
@@ -119,18 +177,48 @@ const Index = () => {
     }
   };
 
+  const toggleCalendarCollapse = () => {
+    setIsCalendarCollapsed(!isCalendarCollapsed);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto h-[calc(100vh-4rem)]">
-        <ChatContainer
-          messages={messages}
-          isAuthenticated={isAuthenticated}
-          onSendMessage={handleSendMessage}
-          onLogin={login}
-          onLogout={logout}
-          isLoading={isProcessing}
-          isAuthLoading={loading}
-        />
+      <div className="max-w-6xl mx-auto h-[calc(100vh-4rem)]">
+        <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg overflow-hidden">
+          <Collapsible
+            open={!isCalendarCollapsed}
+            className="h-full"
+          >
+            <CollapsibleContent className="h-full">
+              <ResizablePanel 
+                defaultSize={25} 
+                minSize={20} 
+                maxSize={40}
+                className="h-full"
+              >
+                <CalendarWidget 
+                  events={events} 
+                  isCollapsed={isCalendarCollapsed}
+                  onToggleCollapse={toggleCalendarCollapse}
+                />
+              </ResizablePanel>
+            </CollapsibleContent>
+          </Collapsible>
+          
+          {!isCalendarCollapsed && <ResizableHandle withHandle />}
+          
+          <ResizablePanel defaultSize={isCalendarCollapsed ? 100 : 75}>
+            <ChatContainer
+              messages={messages}
+              isAuthenticated={isAuthenticated}
+              onSendMessage={handleSendMessage}
+              onLogin={login}
+              onLogout={logout}
+              isLoading={isProcessing}
+              isAuthLoading={loading}
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
     </div>
   );
