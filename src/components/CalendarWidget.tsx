@@ -36,7 +36,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
     return <MobileCalendarDrawer events={events} isOpen={isOpen} onToggle={onToggle} />;
   }
 
-  // For desktop view - use absolute positioning with animation
+  // For desktop view
   return (
     <>
       <CalendarToggleButton isOpen={isOpen} onClick={onToggle} />

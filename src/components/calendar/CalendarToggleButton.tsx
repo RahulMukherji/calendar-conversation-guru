@@ -31,7 +31,7 @@ const CalendarToggleButton: React.FC<CalendarToggleButtonProps> = ({
   }
 
   return (
-    <div className="fixed top-4 left-0 z-50 md:absolute">
+    <div className="fixed top-4 left-0 z-50">
       <Button 
         variant="outline" 
         size="sm" 
