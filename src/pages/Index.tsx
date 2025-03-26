@@ -7,17 +7,20 @@ import { ChatMessageProps } from '@/components/ChatMessage';
 import { CalendarEvent } from '@/types/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  ResizablePanel, 
-  ResizablePanelGroup, 
-  ResizableHandle 
-} from '@/components/ui/resizable';
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import EventCard from '@/components/EventCard';
 
 const Index = () => {
   const { isAuthenticated, loading, login, logout } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessageProps[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isCalendarCollapsed, setIsCalendarCollapsed] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   // Initialize with welcome message when authentication state changes
@@ -142,14 +145,42 @@ const Index = () => {
           }
         ];
         
-        const response: ChatMessageProps = {
+        // First response with regular event cards
+        const initialResponse: ChatMessageProps = {
           content: "Here are examples of all the available calendar event card types:",
           type: 'agent',
           timestamp: new Date(),
           events: demoEvents,
         };
         
-        setMessages(prev => [...prev, response]);
+        setMessages(prev => [...prev, initialResponse]);
+        
+        // Second response with carousel of events
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const carouselResponse: ChatMessageProps = {
+          content: "And here's a carousel view of your upcoming events that you can easily scroll through:",
+          type: 'agent',
+          timestamp: new Date(),
+          customContent: (
+            <div className="my-4 w-full">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  {demoEvents.map((event, index) => (
+                    <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                      <EventCard event={event} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <div className="flex justify-center mt-2">
+                  <CarouselPrevious className="static translate-y-0 mr-2" />
+                  <CarouselNext className="static translate-y-0" />
+                </div>
+              </Carousel>
+            </div>
+          ),
+        };
+        
+        setMessages(prev => [...prev, carouselResponse]);
         
         // Also add these events to the calendar widget
         setEvents(prev => [...prev, ...demoEvents]);
@@ -244,34 +275,23 @@ const Index = () => {
     }
   };
 
-  const toggleCalendarCollapse = () => {
-    setIsCalendarCollapsed(!isCalendarCollapsed);
+  const toggleCalendar = () => {
+    setIsCalendarOpen(!isCalendarOpen);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto h-[calc(100vh-4rem)]">
-        <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg overflow-hidden">
-          <ResizablePanel 
-            defaultSize={25} 
-            minSize={5} 
-            maxSize={40}
-            className="h-full"
-            collapsible={true}
-            collapsedSize={5}
-            onCollapse={() => setIsCalendarCollapsed(true)}
-            onExpand={() => setIsCalendarCollapsed(false)}
-          >
-            <CalendarWidget 
-              events={events} 
-              isCollapsed={isCalendarCollapsed}
-              onToggleCollapse={toggleCalendarCollapse}
-            />
-          </ResizablePanel>
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 p-0 md:p-4">
+      <div className="max-w-6xl mx-auto h-[100vh] md:h-[calc(100vh-4rem)]">
+        <div className="relative h-full">
+          {/* Calendar Widget */}
+          <CalendarWidget 
+            events={events} 
+            isOpen={isCalendarOpen}
+            onToggle={toggleCalendar}
+          />
           
-          <ResizableHandle withHandle />
-          
-          <ResizablePanel defaultSize={75}>
+          {/* Main Chat Container */}
+          <div className={`h-full transition-all duration-300 ${isCalendarOpen ? 'md:pl-4' : ''}`}>
             <ChatContainer
               messages={messages}
               isAuthenticated={isAuthenticated}
@@ -281,8 +301,8 @@ const Index = () => {
               isLoading={isProcessing}
               isAuthLoading={loading}
             />
-          </ResizablePanel>
-        </ResizablePanelGroup>
+          </div>
+        </div>
       </div>
     </div>
   );

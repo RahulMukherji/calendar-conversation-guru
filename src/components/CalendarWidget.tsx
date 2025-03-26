@@ -20,19 +20,28 @@ import {
   AccordionTrigger 
 } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { CalendarEvent } from '@/types/calendar';
 import { formatDate, isToday, isTomorrow } from '@/lib/dateUtils';
+import EventCard from '@/components/EventCard';
+import { Drawer, DrawerClose, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 
 interface CalendarWidgetProps {
   events?: CalendarEvent[];
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
 const CalendarWidget: React.FC<CalendarWidgetProps> = ({ 
   events = [], 
-  isCollapsed,
-  onToggleCollapse
+  isOpen,
+  onToggle
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   
@@ -48,40 +57,82 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
     return !isToday(event.date) && !isTomorrow(event.date);
   });
 
-  if (isCollapsed) {
+  // For small screens, use a drawer instead
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  if (isMobile) {
     return (
-      <div className="h-full flex items-center justify-center bg-gray-50 border-r p-2">
-        <Button 
-          variant="outline" 
-          size="icon" 
-          onClick={onToggleCollapse}
-          className="h-10 w-10"
-          title="Show Calendar"
-        >
-          <CalendarIcon className="h-5 w-5 text-google-blue" />
-        </Button>
-      </div>
+      <Drawer open={isOpen} onOpenChange={onToggle}>
+        <DrawerTrigger asChild>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="fixed top-4 left-4 z-50 md:hidden"
+            aria-label="Toggle Calendar"
+          >
+            <CalendarIcon className="h-5 w-5 text-google-blue" />
+          </Button>
+        </DrawerTrigger>
+        <DrawerContent className="max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center gap-2 text-google-blue">
+              <CalendarIcon className="h-5 w-5" />
+              <h2 className="text-sm font-medium">Calendar</h2>
+            </div>
+            <DrawerClose asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <X className="h-4 w-4" />
+              </Button>
+            </DrawerClose>
+          </div>
+          <div className="p-4 overflow-y-auto">
+            {renderCalendarContent()}
+          </div>
+        </DrawerContent>
+      </Drawer>
     );
   }
 
-  return (
-    <div className="h-full flex flex-col bg-gray-50 border-r">
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-2 text-google-blue">
-          <CalendarIcon className="h-5 w-5" />
-          <h2 className="text-sm font-medium">Calendar</h2>
+  // For desktop view
+  return isOpen ? (
+    <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm md:relative md:inset-auto md:bg-transparent md:backdrop-blur-none transition-opacity duration-300">
+      <div className="absolute left-0 top-0 h-full max-w-xs w-full bg-white shadow-lg animate-slide-in">
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center gap-2 text-google-blue">
+            <CalendarIcon className="h-5 w-5" />
+            <h2 className="text-sm font-medium">Calendar</h2>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={onToggle}
+            className="h-8 w-8"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={onToggleCollapse}
-          className="h-8 w-8"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
 
-      <div className="flex-1 overflow-y-auto p-3">
+        <div className="p-4 overflow-y-auto h-[calc(100%-60px)]">
+          {renderCalendarContent()}
+        </div>
+      </div>
+    </div>
+  ) : (
+    <Button 
+      variant="outline" 
+      size="icon" 
+      onClick={onToggle}
+      className="fixed top-4 left-4 z-50 md:relative md:top-auto md:left-auto"
+      aria-label="Toggle Calendar"
+    >
+      <CalendarIcon className="h-5 w-5 text-google-blue" />
+    </Button>
+  );
+  
+  // Helper function to render calendar content
+  function renderCalendarContent() {
+    return (
+      <>
         <CalendarUI
           mode="single"
           selected={selectedDate}
@@ -97,22 +148,33 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
           {eventsForSelectedDate.length > 0 ? (
             <div className="space-y-2">
               {eventsForSelectedDate.map((event, index) => (
-                <Card key={index} className="bg-white">
-                  <CardContent className="p-3">
-                    <div className="text-sm font-medium">{event.title}</div>
-                    {event.startTime && event.endTime && (
-                      <div className="text-xs text-gray-500">
-                        {event.startTime} - {event.endTime}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <EventCard key={index} event={event} />
               ))}
             </div>
           ) : (
             <p className="text-sm text-gray-500">No events scheduled</p>
           )}
         </div>
+        
+        {/* Event Carousel */}
+        {events.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-sm font-medium mb-3 text-gray-700">Upcoming Events</h3>
+            <Carousel className="w-full">
+              <CarouselContent>
+                {events.map((event, index) => (
+                  <CarouselItem key={index} className="md:basis-1/2">
+                    <EventCard event={event} />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <div className="flex justify-center mt-2">
+                <CarouselPrevious className="static translate-y-0 mr-2" />
+                <CarouselNext className="static translate-y-0" />
+              </div>
+            </Carousel>
+          </div>
+        )}
         
         <Accordion type="single" collapsible className="mt-6">
           {todayEvents.length > 0 && (
@@ -178,9 +240,9 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
             </AccordionItem>
           )}
         </Accordion>
-      </div>
-    </div>
-  );
+      </>
+    );
+  }
 };
 
 export default CalendarWidget;
