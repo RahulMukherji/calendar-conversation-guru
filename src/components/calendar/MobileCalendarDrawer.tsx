@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Drawer, DrawerClose, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import CalendarHeader from './CalendarHeader';
 import CalendarContent from './CalendarContent';
 import CalendarToggleButton from './CalendarToggleButton';

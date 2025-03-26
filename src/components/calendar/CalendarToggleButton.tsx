@@ -22,6 +22,7 @@ const CalendarToggleButton: React.FC<CalendarToggleButtonProps> = ({
           size="sm"
           className="h-8 pl-0 pr-2 border-l-0 rounded-l-none rounded-r-md bg-white shadow-sm"
           aria-label="Toggle Calendar"
+          onClick={onClick}
         >
           <ArrowRight className="h-4 w-4 text-google-blue" />
         </Button>

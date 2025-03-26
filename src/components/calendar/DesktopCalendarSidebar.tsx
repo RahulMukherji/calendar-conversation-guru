@@ -20,7 +20,7 @@ const DesktopCalendarSidebar: React.FC<DesktopCalendarSidebarProps> = ({
       <div 
         className={`fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:absolute md:inset-auto md:top-0 md:bottom-0 md:h-full md:translate-x-[-100%] md:${isOpen ? 'translate-x-0' : 'translate-x-[-100%]'}`}
+        } md:absolute md:inset-auto md:top-0 md:bottom-0 md:h-full md:translate-x-[-100%] ${isOpen ? 'md:translate-x-0' : ''}`}
       >
         <CalendarHeader onClose={onToggle} />
         <div className="p-4 overflow-y-auto h-[calc(100%-60px)]">

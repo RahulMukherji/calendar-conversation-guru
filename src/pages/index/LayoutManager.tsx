@@ -26,6 +26,7 @@ const LayoutManager: React.FC<LayoutManagerProps> = ({
   onLogin,
   onLogout,
 }) => {
+  // Initialize with calendar closed
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const toggleCalendar = () => {
