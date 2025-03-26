@@ -48,6 +48,22 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
     return !isToday(event.date) && !isTomorrow(event.date);
   });
 
+  if (isCollapsed) {
+    return (
+      <div className="h-full flex items-center justify-center bg-gray-50 border-r p-2">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={onToggleCollapse}
+          className="h-10 w-10"
+          title="Show Calendar"
+        >
+          <CalendarIcon className="h-5 w-5 text-google-blue" />
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full flex flex-col bg-gray-50 border-r">
       <div className="flex items-center justify-between p-4 border-b">
@@ -61,7 +77,7 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
           onClick={onToggleCollapse}
           className="h-8 w-8"
         >
-          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          <X className="h-4 w-4" />
         </Button>
       </div>
 

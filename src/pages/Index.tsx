@@ -11,7 +11,6 @@ import {
   ResizablePanelGroup, 
   ResizableHandle 
 } from '@/components/ui/resizable';
-import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 
 const Index = () => {
   const { isAuthenticated, loading, login, logout } = useAuth();
@@ -89,71 +88,139 @@ const Index = () => {
     setIsProcessing(true);
     
     try {
-      // Simulate a response from the LLM agent
-      // In a real implementation, this would call your LLM API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock response based on message content
-      let response: ChatMessageProps;
-      let responseEvents: CalendarEvent[] = [];
-      
-      // Simple logic to demonstrate event cards
-      if (message.toLowerCase().includes('schedule') || message.toLowerCase().includes('meeting')) {
-        const today = new Date();
+      // Special case for "hi" command - show all available content cards
+      if (message.toLowerCase() === "hi") {
+        await new Promise(resolve => setTimeout(resolve, 800));
         
-        responseEvents = [
+        // Create a response with all event types
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const nextWeek = new Date(today);
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        
+        const demoEvents: CalendarEvent[] = [
           {
-            title: 'Team Standup',
+            title: 'Regular Meeting',
             date: today.toISOString().split('T')[0],
             startTime: '10:00',
             endTime: '10:30',
             location: 'Google Meet',
             attendees: ['john@example.com', 'sarah@example.com'],
-          }
-        ];
-        
-        response = {
-          content: "I've scheduled a 'Team Standup' for today at 10:00 AM. Here are the details:",
-          type: 'agent',
-          timestamp: new Date(),
-          events: responseEvents,
-        };
-        
-        // Add the event to our events list
-        setEvents(prev => [...prev, ...responseEvents]);
-      } else if (message.toLowerCase().includes('tomorrow')) {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        responseEvents = [
+          },
           {
-            title: 'Product Review',
+            title: 'All-day Event',
             date: tomorrow.toISOString().split('T')[0],
-            startTime: '14:00',
-            endTime: '15:00',
-            location: 'Conference Room A',
-            attendees: ['product@example.com', 'design@example.com'],
+            isAllDay: true,
+            location: 'Conference Center',
+            description: 'Company-wide training day',
+          },
+          {
+            title: 'Multi-attendee Meeting',
+            date: nextWeek.toISOString().split('T')[0],
+            startTime: '13:00',
+            endTime: '14:00',
+            location: 'Conference Room B',
+            attendees: ['team@example.com', 'client@example.com', 'sales@example.com', 'design@example.com'],
+            description: 'Quarterly business review with all stakeholders',
+          },
+          {
+            title: 'Tentative Event',
+            date: today.toISOString().split('T')[0],
+            startTime: '15:00',
+            endTime: '16:00',
+            status: 'tentative',
+            description: 'Pending confirmation from attendees',
+          },
+          {
+            title: 'Cancelled Meeting',
+            date: tomorrow.toISOString().split('T')[0],
+            startTime: '09:00',
+            endTime: '10:00',
+            status: 'cancelled',
+            description: 'This meeting was cancelled',
           }
         ];
         
-        response = {
-          content: "Here's your meeting for tomorrow:",
+        const response: ChatMessageProps = {
+          content: "Here are examples of all the available calendar event card types:",
           type: 'agent',
           timestamp: new Date(),
-          events: responseEvents,
+          events: demoEvents,
         };
         
-        // Add the event to our events list
-        setEvents(prev => [...prev, ...responseEvents]);
+        setMessages(prev => [...prev, response]);
+        
+        // Also add these events to the calendar widget
+        setEvents(prev => [...prev, ...demoEvents]);
+        
       } else {
-        response = {
-          content: "I can help you manage your calendar. You can ask me to schedule meetings, check your availability, or manage existing events. What would you like to do?",
-          type: 'agent',
-          timestamp: new Date(),
-        };
+        // Simulate a response from the LLM agent
+        // In a real implementation, this would call your LLM API
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Mock response based on message content
+        let response: ChatMessageProps;
+        let responseEvents: CalendarEvent[] = [];
+        
+        // Simple logic to demonstrate event cards
+        if (message.toLowerCase().includes('schedule') || message.toLowerCase().includes('meeting')) {
+          const today = new Date();
+          
+          responseEvents = [
+            {
+              title: 'Team Standup',
+              date: today.toISOString().split('T')[0],
+              startTime: '10:00',
+              endTime: '10:30',
+              location: 'Google Meet',
+              attendees: ['john@example.com', 'sarah@example.com'],
+            }
+          ];
+          
+          response = {
+            content: "I've scheduled a 'Team Standup' for today at 10:00 AM. Here are the details:",
+            type: 'agent',
+            timestamp: new Date(),
+            events: responseEvents,
+          };
+          
+          // Add the event to our events list
+          setEvents(prev => [...prev, ...responseEvents]);
+        } else if (message.toLowerCase().includes('tomorrow')) {
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          
+          responseEvents = [
+            {
+              title: 'Product Review',
+              date: tomorrow.toISOString().split('T')[0],
+              startTime: '14:00',
+              endTime: '15:00',
+              location: 'Conference Room A',
+              attendees: ['product@example.com', 'design@example.com'],
+            }
+          ];
+          
+          response = {
+            content: "Here's your meeting for tomorrow:",
+            type: 'agent',
+            timestamp: new Date(),
+            events: responseEvents,
+          };
+          
+          // Add the event to our events list
+          setEvents(prev => [...prev, ...responseEvents]);
+        } else {
+          response = {
+            content: "I can help you manage your calendar. You can ask me to schedule meetings, check your availability, or manage existing events. What would you like to do?",
+            type: 'agent',
+            timestamp: new Date(),
+          };
+        }
+        
+        setMessages(prev => [...prev, response]);
       }
-      
-      setMessages(prev => [...prev, response]);
     } catch (error) {
       console.error('Error processing message:', error);
       
@@ -185,29 +252,26 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 p-4 md:p-8">
       <div className="max-w-6xl mx-auto h-[calc(100vh-4rem)]">
         <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg overflow-hidden">
-          <Collapsible
-            open={!isCalendarCollapsed}
+          <ResizablePanel 
+            defaultSize={25} 
+            minSize={5} 
+            maxSize={40}
             className="h-full"
+            collapsible={true}
+            collapsedSize={5}
+            onCollapse={() => setIsCalendarCollapsed(true)}
+            onExpand={() => setIsCalendarCollapsed(false)}
           >
-            <CollapsibleContent className="h-full">
-              <ResizablePanel 
-                defaultSize={25} 
-                minSize={20} 
-                maxSize={40}
-                className="h-full"
-              >
-                <CalendarWidget 
-                  events={events} 
-                  isCollapsed={isCalendarCollapsed}
-                  onToggleCollapse={toggleCalendarCollapse}
-                />
-              </ResizablePanel>
-            </CollapsibleContent>
-          </Collapsible>
+            <CalendarWidget 
+              events={events} 
+              isCollapsed={isCalendarCollapsed}
+              onToggleCollapse={toggleCalendarCollapse}
+            />
+          </ResizablePanel>
           
-          {!isCalendarCollapsed && <ResizableHandle withHandle />}
+          <ResizableHandle withHandle />
           
-          <ResizablePanel defaultSize={isCalendarCollapsed ? 100 : 75}>
+          <ResizablePanel defaultSize={75}>
             <ChatContainer
               messages={messages}
               isAuthenticated={isAuthenticated}
