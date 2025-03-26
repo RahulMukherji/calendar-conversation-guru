@@ -93,10 +93,25 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
     );
   }
 
-  // For desktop view
-  return isOpen ? (
-    <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm md:relative md:inset-auto md:bg-transparent md:backdrop-blur-none transition-opacity duration-300">
-      <div className="absolute left-0 top-0 h-full max-w-xs w-full bg-white shadow-lg animate-slide-in">
+  // For desktop view - use absolute positioning with animation
+  return (
+    <>
+      <Button 
+        variant="outline" 
+        size="icon" 
+        onClick={onToggle}
+        className="fixed top-4 left-4 z-50 md:relative md:top-auto md:left-auto transition-all duration-300"
+        aria-label="Toggle Calendar"
+      >
+        <CalendarIcon className="h-5 w-5 text-google-blue" />
+      </Button>
+
+      {/* Calendar Sidebar with Animation */}
+      <div 
+        className={`fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        } md:absolute md:inset-auto md:top-0 md:bottom-0 md:h-full`}
+      >
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2 text-google-blue">
             <CalendarIcon className="h-5 w-5" />
@@ -116,17 +131,15 @@ const CalendarWidget: React.FC<CalendarWidgetProps> = ({
           {renderCalendarContent()}
         </div>
       </div>
-    </div>
-  ) : (
-    <Button 
-      variant="outline" 
-      size="icon" 
-      onClick={onToggle}
-      className="fixed top-4 left-4 z-50 md:relative md:top-auto md:left-auto"
-      aria-label="Toggle Calendar"
-    >
-      <CalendarIcon className="h-5 w-5 text-google-blue" />
-    </Button>
+
+      {/* Overlay to close calendar when clicking outside on mobile */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm md:hidden"
+          onClick={onToggle}
+        />
+      )}
+    </>
   );
   
   // Helper function to render calendar content

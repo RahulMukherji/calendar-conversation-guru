@@ -13,6 +13,7 @@ export interface ChatMessageProps {
   timestamp: Date;
   events?: CalendarEvent[];
   isLoading?: boolean;
+  customContent?: React.ReactNode;
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({
@@ -21,6 +22,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
   timestamp,
   events = [],
   isLoading = false,
+  customContent,
 }) => {
   const formattedTime = new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
@@ -65,6 +67,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
             </div>
           </Card>
           
+          {/* Render custom content if provided */}
+          {customContent && (
+            <div className="mt-2 w-full">{customContent}</div>
+          )}
+          
+          {/* Render event cards if provided */}
           {events && events.length > 0 && (
             <div className="mt-2 space-y-2 w-full">
               {events.map((event, index) => (

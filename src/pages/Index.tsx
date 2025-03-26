@@ -291,7 +291,7 @@ const Index = () => {
           />
           
           {/* Main Chat Container */}
-          <div className={`h-full transition-all duration-300 ${isCalendarOpen ? 'md:pl-4' : ''}`}>
+          <div className={`h-full transition-all duration-300 ${isCalendarOpen ? 'md:pl-60' : ''}`}>
             <ChatContainer
               messages={messages}
               isAuthenticated={isAuthenticated}
