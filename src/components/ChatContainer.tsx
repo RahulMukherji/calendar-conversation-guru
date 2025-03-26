@@ -4,6 +4,7 @@ import ChatMessage, { ChatMessageProps } from './ChatMessage';
 import ChatInput from './ChatInput';
 import ChatHeader from './ChatHeader';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Calendar } from 'lucide-react';
 import { CalendarEvent } from '@/types/calendar';
 
 interface ChatContainerProps {
