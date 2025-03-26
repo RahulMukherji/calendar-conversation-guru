@@ -33,17 +33,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
   return (
     <div className={`flex ${type === 'user' ? 'justify-end' : 'justify-start'} mb-4 message-appear`}>
       <div className={`flex ${type === 'user' ? 'flex-row-reverse' : 'flex-row'} max-w-[80%]`}>
-        {type !== 'system' && (
-          <Avatar className={`h-8 w-8 ${type === 'user' ? 'ml-2' : 'mr-2'}`}>
-            {type === 'agent' ? (
-              <div className="h-full w-full flex items-center justify-center bg-google-blue text-white font-semibold">
-                A
-              </div>
-            ) : (
-              <div className="h-full w-full flex items-center justify-center bg-gray-200 text-gray-700 font-semibold">
-                U
-              </div>
-            )}
+        {/* Only show avatar for agent messages, not for user or system messages */}
+        {type === 'agent' && (
+          <Avatar className="h-8 w-8 mr-2">
+            <div className="h-full w-full flex items-center justify-center bg-google-blue text-white font-semibold">
+              A
+            </div>
           </Avatar>
         )}
         
